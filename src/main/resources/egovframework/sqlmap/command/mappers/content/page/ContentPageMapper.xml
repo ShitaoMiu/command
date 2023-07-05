@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.ContentPageMapper">
+ 
+ <select id="selectContentsPage" parameterType="command.vo.ContentsPageVo" resultType="command.vo.ContentsPageVo">
+ select 
+	   a.menuIdx					as menuIdx
+ 	 , a.pageContentIdx  			as pageContentIdx
+     , a.pageMenuContents  			as pageMenuContents
+     , a.pageContentEnables			as pageContentEnables 
+     , a.regId 						as regId
+     , ifnull(a.modDate,a.regDate)  as writeDate
+     , b.menuNm						as menuNm
+from contents_page a inner join menus b 
+on a.menuIdx  = b.menuIdx 
+where a.menuIdx  = #{menuIdx}
+order by a.pageContentIdx 
+ 
+ </select>
+ 
+ 
+ <select id="selectPageContentDetail" parameterType="command.vo.ContentsPageVo" resultType="command.vo.ContentsPageVo">
+ select 
+ 	    a.pageContentIdx  				as pageContentIdx
+     ,  a.pageMenuContents  			as pageMenuContents
+     ,  a.pageContentEnables			as pageContentEnables 
+     ,  a.regId 						as regId
+     ,  ifnull(a.modDate,a.regDate) 	as writeDate
+     ,  a.menuIdx 						as menuIdx 
+     ,  b.menuNm						as menuNm
+ from contents_page a inner join menus b 
+ on a.menuIdx =b.menuIdx 
+ where a.pageContentIdx 			= #{pageContentIdx}
+ </select>
+ 
+ <select id="selectMaxPageContentIdx" resultType="Integer">
+	select ifnull(max(pageContentIdx),0)  
+	from contents_page
+ </select>
+ 
+ 
+ 
+ <insert id="savePageContent" parameterType="command.vo.ContentsPageVo">
+	INSERT INTO contents_page(
+		pageContentIdx
+	  , pageMenuContents
+	  , pageContentEnables
+	  , regId
+	  , regDate
+	  , menuIdx
+	)
+	VALUES(
+		#{pageContentIdx}
+	  , #{pageMenuContents}
+	  , 'N'
+	  , 'admin'
+	  , now()
+	  , #{menuIdx}
+	  )
+ 	ON
+ 	DUPLICATE KEY
+ 	UPDATE 
+ 	  pageMenuContents = #{pageMenuContents}
+ 	, pageContentEnables = #{pageContentEnables}
+ 	, modId   = 'admin'
+ 	, modDate = now()
+ </insert>
+</mapper>

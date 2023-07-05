@@ -1,0 +1,1 @@
+ <div class="col-md-12 	Footer test">Footer</div>

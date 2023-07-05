@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.ContentPopupMapper">
+ 
+ 
+ <select id="selectList" resultType="command.vo.ContentsPopupVo" parameterType="command.vo.ContentsPopupVo">
+
+	SELECT 
+		  popupIdx
+		, title
+		, stTime
+		, enTime
+		, content
+		, expl
+		, popupType
+		, popupOptionType
+		, popupOptionDay
+		, width
+		, height
+		, popupFileId
+		, disposeTarget
+		, regId
+		, regDate
+	FROM popup
+ </select>
+ 
+ 
+  
+ 
+ 
+ 
+ <insert id="savePopup" parameterType="command.vo.ContentsPopupVo">
+	INSERT INTO popup
+	(	popupIdx
+	  ,	title
+	  , stTime
+	  , enTime
+	  , content
+	  , expl
+	  , popupType
+	  , popupOptionType
+	  , popupOptionDay
+	  , width
+	  , height
+	  , popupFileId
+	  , disposeTarget
+	  , regId
+	  , regDate
+	)
+	VALUES(
+		#{popupIdx}
+	  ,	#{title}
+	  , #{stTime}
+	  , #{enTime}
+	  , #{content}
+	  , #{expl}
+	  , #{popupType}
+	  , #{popupOptionType}
+	  , #{popupOptionDay}
+	  , #{width}
+	  , #{height}
+	  , #{popupFileId}
+	  , #{disposeTarget}
+	  , #{regId}
+	  , now()
+	  )
+	ON
+	DUPLICATE KEY
+	UPDATE
+		title				= #{title}
+	  , stTime				= #{stTime}
+	  , enTime				= #{enTime}
+	  , content				= #{content}
+	  , expl				= #{expl}
+	  , popupType     		= #{popupType}
+	  , popupOptionType		= #{popupOptionType}
+	  , popupOptionDay		= #{popupOptionDay}
+	  , width				= #{width}
+	  , height				= #{height}
+	  , popupFileId		    = #{popupFileId}
+	  , disposeTarget		= #{disposeTarget}
+	  , modId 				= #{regId}
+	  , modDate 			= now()
+ </insert>
+ 
+ 
+ <select id="selectPopupOne" parameterType="String" resultType="command.vo.ContentsPopupVo">
+ 	select
+ 		  a.popupIdx
+		, a.title
+		, a.stTime
+		, a.enTime
+		, a.content
+		, a.expl
+		, a.popupType
+		, a.popupOptionType
+		, a.popupOptionDay
+		, a.width
+		, a.height
+		, a.popupFileId
+		, a.disposeTarget
+		, a.regId
+		, a.regDate
+		, b.ATCH_FILE_ID 	as atchFileId
+		, b.CREAT_DT		as creatDt
+		, b.USE_AT			as useAt
+		, c.FILE_SN			as fileSn
+		, c.FILE_STRE_COURS	as fileStreCours
+		, c.STRE_FILE_NM	as streFileNm
+		, c.ORIGNL_FILE_NM	as orignFileNm
+		, c.FILE_EXTSN		as fileExtSn
+		, c.FILE_CN			as fileCn
+		, c.FILE_SIZE		as fileSize
+	FROM popup a  left join lettnfile b
+	     on a.popupFileId = b.ATCH_FILE_ID
+	     left join  lettnfiledetail c 
+	     on b.ATCH_FILE_ID  = c.ATCH_FILE_ID
+	where a.popupIdx= #{popupIdx}
+ </select>
+ 
+ 
+ 
+  <select id="selectContentsBoardTotalCnt" parameterType="command.vo.ContentsPopupVo" resultType="Integer">
+ 	SELECT 
+		  count(popupIdx) cnt
+	FROM popup
+	where 1=1
+ </select>
+ 
+ 
+ <delete id="deletePopupOne"  parameterType="String">
+	 delete from popup
+	 where popupIdx= #{popupIdx}
+ </delete>
+  
+</mapper>

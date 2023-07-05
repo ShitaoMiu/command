@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.MenuMapper">
+
+<resultMap id="memberHashMapResultMap" type="java.util.HashMap">
+  <result column="memGrpId" property="memGrpId"/>
+  <result column="memGrpNm" property="memGrpNm"/>
+  <result column="memberId" property="memberId"/>
+  <result column="memberNm" property="memberNm"/>
+ </resultMap>
+ 
+
+
+	<select id="selectMenuList" resultType="MenuVo" parameterType="String">
+		WITH RECURSIVE menu_cte AS (
+		SELECT
+			menuIdx,
+			menuNm,
+			parentMenuIdx,
+			menuLevel,
+			CAST(menuNm AS CHAR(200)) AS menuPath,
+			menuOrder,
+			menuType,
+			menuDescription,
+			menuUrl,
+			concat(menuLevel,menuOrder) as rk
+		FROM
+		Menus
+		WHERE
+		parentMenuIdx = 0
+		and menuIdx = #{menuIdx}
+
+		UNION ALL
+
+		SELECT
+			m.menuIdx,
+			m.menuNm,
+			m.parentMenuIdx,
+			m.menuLevel,
+			CONCAT(cte.menuPath, '> ', m.menuNm) AS menuPath,
+			m.menuOrder,
+			m.menuType,
+			m.menuDescription,
+			m.menuUrl,
+			CONCAT(cte.rk, '-', CONCAT(m.menuLevel, m.menuOrder)) as rk
+
+		FROM
+		Menus m
+		INNER JOIN menu_cte cte ON m.parentMenuIdx = cte.menuIdx
+		)
+		SELECT
+			menuIdx,
+			menuNm,
+			parentMenuIdx,
+			menuLevel,
+			menuPath,
+			menuOrder,
+			menuType,
+			menuDescription,
+			menuUrl,
+			rk
+		FROM
+		menu_cte
+		ORDER by rk
+	</select>
+
+	<select id="selectOne" parameterType="Integer" resultType="MenuVo">
+		WITH RECURSIVE menu_tree (menuIdx, menuNm, parentMenuIdx,
+		menuLevel, menuPath, menuOrder,menuType,menuDescription,menuUrl) AS
+		(
+		SELECT menuIdx, menuNm, parentMenuIdx,menuLevel, CAST(menuNm AS CHAR(100))
+		,menuOrder ,menuType , menuDescription,menuUrl
+		FROM menus
+		WHERE parentMenuIdx = 0
+		UNION ALL
+		SELECT m.menuIdx, m.menuNm, m.parentMenuIdx, m.menuLevel,
+		CONCAT(mtree.menuPath,'>', m.menuNm) , m.menuOrder ,m.menuType
+		,m.menuDescription,m.menuUrl
+		FROM menus m
+		JOIN menu_tree mtree
+		ON m.parentMenuIdx = mtree.menuIdx
+		)
+		select * from menu_tree
+		where menuIdx = #{menuIdx}
+	</select>
+
+
+	<select id="selectMaxMenuIdx" parameterType="Int" resultType="Integer">
+		select IFNULL(MAX(menuIdx),1) from menus
+
+	</select>
+
+	<select id="selctMaxMenuOrder" parameterType="Int" resultType="Integer">
+		select IFNULL(MAX(menuOrder),1) from menus
+		where parentMenuIdx = #{parentMenuIdx}
+	</select>
+
+
+	<insert id="saveMenu" parameterType="MenuVo">
+		INSERT INTO menus (menuIdx,menuNm, parentMenuIdx,menuLevel,menuOrder,menuType,menuUrl,menuDescription,regDate)
+		VALUES
+		(#{menuIdx}, #{menuNm}, #{parentMenuIdx},#{menuLevel},#{menuOrder},#{menuType},#{menuUrl},#{menuDescription},now())
+		ON
+		DUPLICATE KEY
+		UPDATE 
+		  menuNm = #{menuNm}
+		, menuType = #{menuType}
+		, menuUrl = #{menuUrl}
+		, menuDescription = #{menuDescription}
+		, updDate= now()
+	</insert>
+
+
+	<select id="selectChildList" parameterType="Integer" resultType="MenuVo">
+		select menuIdx, menuNm ,menuUrl,menuOrder,parentMenuIdx,menuLevel,menuType,menuDescription,regId,updId,regDate,updDate
+		from menus m
+		where parentMenuIdx = #{menuIdx}
+		order by menuOrder
+	</select>
+
+	<delete id="deleteMenus" parameterType="java.util.List">
+		delete from menus
+		where menuIdx in
+	  	<foreach item="item" collection="list" open="(" separator="," close=")">
+        	#{item}
+    	</foreach>
+	</delete>
+ 
+
+	<update id="upDateMenuOrder" parameterType="HashMap">
+		update menus
+		set menuOrder = menuOrder + 1
+		where parentMenuIdx= #{menuVo.parentMenuIdx}
+		<if test="type == 'parentChg'">
+			and menuOrder > #{menuVo.menuOrder}
+		</if>
+		<if test="type == 'selfChg'">
+			and menuOrder >= #{menuVo.menuOrder}
+		</if>
+	</update>
+
+
+
+
+
+	<update id="updateMenuUpDown" parameterType="MenuVo">
+		UPDATE MENUs
+		SET  
+		menuOrder = #{menuOrder}
+		WHERE menuIdx = #{menuIdx}
+	</update>
+
+
+ 
+	
+	
+	<select id="selectSubMenus" parameterType="String" resultType="MenuVo">
+	 	WITH RECURSIVE menu_cte AS (
+	 	    select menuIdx,menuNm
+	 	    ,CAST(menuNm AS CHAR(200)) AS menuPath
+	 	    ,menuUrl 
+	 	    ,menuLevel
+			,concat(menuLevel,menuOrder) as rk
+			,parentMenuIdx
+			
+	 	    from MENUS
+		 	where 1=1
+		 	and parentMenuIdx =
+		 	
+		 	(select menuIdx from 
+		 	menus
+		 	where menuUrl = #{menuUrl})
+		 	union all
+		 	select m.menuIdx,m.menuNm, 
+			CONCAT(cte.menuPath, '> ', m.menuNm) AS menuPath,
+	 	    m.menuUrl,m.menuLevel,
+			CONCAT(cte.rk, '-', CONCAT(m.menuLevel, m.menuOrder)) as rk,
+			m.parentMenuIdx
+		 	from MENUS m 
+	 		INNER JOIN menu_cte cte ON m.parentMenuIdx = cte.menuIdx
+	 	)
+	 	select * from menu_cte
+	 	order by rk
+	</select>
+	
+<select id="selectTopMenus" parameterType="Integer" resultType="java.util.HashMap">
+	select a.*,b.childMenuUrl 
+	from (
+		select a.menuIdx
+		      ,a.menuNm
+		      ,a.menuOrder
+		      ,ifNull(b.childOrder,0) as childorder 
+		      , concat (a.menuIdx,b.childOrder) as pk
+		       from (
+		select menuIdx,menuNm,menuOrder from menus
+		where menuLevel =1
+		and   parentMenuIdx =2
+		order by menuOrder 
+		) a left join (
+		select parentMenuIdx ,min(menuOrder) as childOrder from menus
+		where menuLevel =2
+		group by parentMenuIdx 
+		) b 
+		on a.menuIdx = b.parentMenuIdx
+		order by a.menuOrder
+	 ) as a left join (select concat(parentMenuIdx,menuOrder) as pk,menuUrl as childMenuUrl from menus) b 
+	 on a.pk = b.pk
+	 order by menuOrder
+	</select>
+ 
+</mapper>

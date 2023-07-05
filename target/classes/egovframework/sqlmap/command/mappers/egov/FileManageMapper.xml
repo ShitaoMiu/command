@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.FileManageMapper">
+ 
+ 	<select id="selectFileList" parameterType="egovframework.example.cmmn.service.FileVO" resultType="egovframework.example.cmmn.service.FileVO" >
+ 		<![CDATA[
+			SELECT 
+				a.ATCH_FILE_ID, b.FILE_CN, b.FILE_SN, b.FILE_STRE_COURS, b.STRE_FILE_NM,
+				b.FILE_EXTSN, b.ORIGNL_FILE_NM, b.FILE_SIZE, a.CREAT_DT
+			FROM
+				LETTNFILE a, LETTNFILEDETAIL b
+			WHERE
+				a.ATCH_FILE_ID = #{atchFileId}
+			AND 
+				a.ATCH_FILE_ID = b.ATCH_FILE_ID
+			AND 
+				a.USE_AT = 'Y'				
+			ORDER BY b.FILE_SN	
+ 		]]> 
+ 	</select>
+ 	
+	<insert id="insertFileMaster" parameterType="egovframework.example.cmmn.service.FileVO" >
+		<![CDATA[
+			INSERT INTO LETTNFILE
+			(ATCH_FILE_ID, CREAT_DT, USE_AT)
+			VALUES
+			( #{atchFileId}, SYSDATE(), 'Y')			
+		]]>
+	</insert>
+	
+	<insert id="insertFileDetail" parameterType="egovframework.example.cmmn.service.FileVO" >
+		<![CDATA[
+			INSERT INTO LETTNFILEDETAIL
+			( ATCH_FILE_ID, FILE_SN, FILE_STRE_COURS, STRE_FILE_NM, 
+			  ORIGNL_FILE_NM, FILE_EXTSN, FILE_SIZE, FILE_CN )
+			VALUES
+			( #{atchFileId}, #{fileSn}, #{fileStreCours}, #{streFileNm}, 
+			  #{orignlFileNm}, #{fileExtsn}, #{fileMg}, #{fileCn} )			
+		]]>
+	</insert>	
+	
+	<delete id="deleteFileDetail" parameterType="egovframework.example.cmmn.service.FileVO" >
+		<![CDATA[ 
+			DELETE FROM LETTNFILEDETAIL
+			WHERE
+				ATCH_FILE_ID = #{atchFileId}
+			AND	
+				FILE_SN = #{fileSn}			
+		]]>	
+	</delete>
+ 	
+	<select id="getMaxFileSN" parameterType="egovframework.example.cmmn.service.FileVO" resultType="java.lang.Integer">
+		<![CDATA[
+			SELECT IFNULL(MAX(FILE_SN),0)+1 AS fileSn
+			FROM LETTNFILEDETAIL
+			WHERE ATCH_FILE_ID =  #{atchFileId}		
+		]]>
+	</select>
+
+ 	<select id="selectFileInf" parameterType="egovframework.example.cmmn.service.FileVO" resultType="egovframework.example.cmmn.service.FileVO" >
+ 		<![CDATA[
+			SELECT 
+				ATCH_FILE_ID		 as atchFileId
+			  , FILE_CN				 as fileCn
+			  , FILE_SN				 as fileSn
+			  , FILE_STRE_COURS		 as fileStreCours 
+			  , STRE_FILE_NM		 as streFileNm
+			  , FILE_EXTSN			 as fileExtSn
+			  , ORIGNL_FILE_NM		 as orignlFileNm
+			  , FILE_SIZE			 as fileSize
+			FROM
+				LETTNFILEDETAIL
+			WHERE
+				ATCH_FILE_ID = #{atchFileId}
+			AND 
+				FILE_SN = #{fileSn}	
+ 		]]>
+ 	</select>
+
+	<update id="deleteCOMTNFILE" parameterType="egovframework.example.cmmn.service.FileVO" >
+		<![CDATA[
+			UPDATE LETTNFILE
+			SET USE_AT = 'N'
+			WHERE ATCH_FILE_ID = #{atchFileId}
+		]]>
+	</update>
+
+ 	<select id="selectFileListByFileNm" parameterType="egovframework.example.cmmn.service.FileVO" resultType="egovframework.example.cmmn.service.FileVO">
+    SELECT 
+          a.ATCH_FILE_ID			as atchFileId
+        , b.FILE_CN					as fileCn
+        , b.FILE_SN					as fileSn
+        , b.FILE_STRE_COURS			as fileStreCours
+        , b.STRE_FILE_NM			as streFileNm
+        , b.FILE_EXTSN				as fileExtSn
+        , b.ORIGNL_FILE_NM			as orignlFileNm
+        , b.FILE_SIZE				as fileSize
+        , a.CREAT_DT				as creatDt
+    FROM
+        LETTNFILE a, LETTNFILEDETAIL b
+    WHERE
+        a.ATCH_FILE_ID = b.ATCH_FILE_ID
+    AND 
+        a.USE_AT = 'Y'
+    <if test="searchCnd == 'streFileNm'">
+        AND b.STRE_FILE_NM LIKE CONCAT('%', #{searchWrd}, '%')
+    </if>
+    <if test="searchCnd == 'orignlFileNm'">
+        AND b.ORIGNL_FILE_NM LIKE CONCAT('%', #{searchWrd}, '%')
+    </if>
+    ORDER BY a.ATCH_FILE_ID, b.FILE_SN
+    LIMIT #{recordCountPerPage} OFFSET #{firstIndex}
+</select>
+
+<select id="selectFileListCntByFileNm" parameterType="egovframework.example.cmmn.service.FileVO" resultType="java.lang.Integer">
+	SELECT COUNT(a.ATCH_FILE_ID) as cnt
+	FROM LETTNFILE a
+	JOIN LETTNFILEDETAIL b ON a.ATCH_FILE_ID = b.ATCH_FILE_ID
+	WHERE a.USE_AT = 'Y'
+		<if test="searchCnd == 'streFileNm'">
+			AND b.STRE_FILE_NM LIKE CONCAT ('%', #{searchWrd},'%')
+		</if>
+		<if test="searchCnd == 'orignlFileNm'">
+			AND b.ORIGNL_FILE_NM LIKE CONCAT ('%', #{searchWrd},'%')
+		</if>
+</select>
+ 	
+  	<select id="selectImageFileList" parameterType="egovframework.example.cmmn.service.FileVO" resultType="egovframework.example.cmmn.service.FileVO" >
+ 		<![CDATA[
+			SELECT 
+	 			  a.ATCH_FILE_ID			as atchFileId
+		        , b.FILE_CN					as fileCn
+		        , b.FILE_SN					as fileSn
+		        , b.FILE_STRE_COURS			as fileStreCours
+		        , b.STRE_FILE_NM			as streFileNm
+		        , b.FILE_EXTSN				as fileExtSn
+		        , b.ORIGNL_FILE_NM			as orignlFileNm
+		        , b.FILE_SIZE				as fileSize
+		        , a.CREAT_DT				as creatDt
+			FROM
+				LETTNFILE a, LETTNFILEDETAIL b
+			WHERE
+				a.ATCH_FILE_ID = #atchFileId#
+			AND 
+				a.ATCH_FILE_ID = b.ATCH_FILE_ID
+			AND
+				UPPER(b.FILE_EXTSN) IN ('GIF','JPG','BMP','PNG')
+			AND 
+				a.USE_AT = 'Y'				
+			ORDER BY b.FILE_SN	
+ 		]]>
+ 	</select>	
+ 	
+ 
+</mapper>

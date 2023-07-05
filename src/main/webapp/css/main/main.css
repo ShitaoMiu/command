@@ -1,0 +1,96 @@
+@charset "UTF-8";
+
+ul {
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+li {
+	margin: 0;
+	padding: 0;
+}
+
+.progressBar {
+	width: 300px;
+	border: 1px solid red;
+	height: 23px;
+}
+
+.innerProgress {
+	background-color: red;
+	height: 23px;
+	border: 1px solid red;
+	width: 0px;
+}
+
+.leftDiv {
+	min-width: 250px;
+}
+
+.menuTree {
+	margin-top: 10px;
+	background-color: orange;
+}
+
+.menuTitle {
+	display: inline-block;
+	width: 20%;
+	height: 25px;
+	border: 1px solid red;
+	text-align: center;
+}
+
+.active {
+	background-color: #f5eeee;
+	border: 1px solid black;
+}
+
+.tab-pane {
+	min-height: 800px;
+}
+
+.tab2Area {
+	margin: 2%;
+	min-height: 700px;
+}
+
+.tab2AreaTitle {
+	height: 30px;
+	width: 100%
+}
+
+.tab2AreaWrite {
+	height: 300px;
+}
+
+.popup-container {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
+	z-index: 9999;
+}
+
+.popup-content {
+	background-color: #fff;
+	/*   max-width: 500px; */
+	margin: 0 auto;
+	padding: 20px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	max-height: 800px;
+	overflow-y: scroll;
+}
+
+.mainPopup {
+/* 	min-height: 460px; */
+	max-height: 800px;
+}
+ 
+ 

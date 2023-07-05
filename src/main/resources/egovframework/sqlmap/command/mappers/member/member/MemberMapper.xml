@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.MemberMapper">
+
+	<select id="selectMemberList" parameterType="command.vo.MemberVo" 	resultType="command.vo.MemberVo">
+		
+
+		select a.memberId 
+		      ,a.name
+		      ,a.address
+		      ,a.detailAddress 
+		      ,a.phone 
+		      ,a.tel
+		      ,a.fax
+		      ,a.email
+		      ,a.sex 
+		      ,(select codeValue from codes where codeNo = a.departPos) as departPos
+		      ,b.departName 
+		      ,b.departDesc 
+		      ,b.departId
+		      ,a.joinDate 
+		    from members a  inner join depart b 
+			on a.departId  = b.departId 
+			order by b.departId
+			limit ${recordCountPerPage} offset ${firstIndex}		
+	</select>
+ 
+<select id="selectMember" parameterType="command.vo.MemberVo" 	resultType="command.vo.MemberVo">
+			   select a.memberId 
+		      ,a.name
+		      ,a.address
+		      ,a.detailAddress 
+		      ,a.phone 
+		      ,a.tel
+		      ,a.fax
+		      ,a.email
+		      ,a.sex 
+		      ,a.departPos
+		      ,b.departName 
+		      ,b.departDesc 
+		      ,b.departId
+		      ,a.joinDate 
+		    from members a inner join depart b 
+			on a.departId  = b.departId 
+		where a.memberId = #{memberId}	
+	</select>
+
+
+	<select id="selectMemberCount" parameterType="command.vo.MemberVo" resultType="Integer">
+
+		select
+			 count(1)
+		from 
+		members a  inner join depart b 
+		on a.departId  = b.departId 
+ 
+	</select>
+	
+	<select id="selectMemberAuth" parameterType="String" resultType="command.vo.MemAuthVo">
+		select id
+			,memberId
+			,menuIdx
+			,canRead
+			,canWrite
+			,canModify
+			,canDelete
+			,canManage
+		from members_menus_permissions
+		where menuIdx =#{menuIdx}
+
+	</select>
+
+	<insert id="ajaxMemAuth" parameterType="command.vo.MemAuthVo">
+		INSERT INTO members_menus_permissions
+		(
+			 id
+			,memberId
+			, menuIdx
+			, canRead
+			,canWrite
+			,canModify
+			,canDelete
+			,canManage
+		)
+		VALUES
+		(
+			 NULL
+			,#{memberId}
+			,#{menuIdx}
+			,#{canRead}
+			,#{canWrite}
+			,#{canModify}
+			,#{canDelete}
+			,#{canManage}
+		)
+		ON DUPLICATE KEY
+		UPDATE
+		 canRead = VALUES(canRead)
+		,canWrite= VALUES(canWrite)
+		,canWrite= VALUES(canWrite)
+		,canModify= VALUES(canModify)
+		,canDelete= VALUES(canDelete)
+		,canManage= VALUES(canManage)
+	</insert>
+
+
+	<select id="selectMemGrpList" resultType="HashMap">
+		select 
+		 groupId
+		,groupName
+		,groupDescription
+		,groupAuth
+		,groupDelYn
+		from members_groups
+	</select>
+
+
+
+	<select id="selectMemList" resultType="HashMap">
+		select
+		 memberId
+		,name
+		from members
+		where groupId =#{memGrpId}
+	</select>
+	
+	
+	<select id="selectDeptList" resultType="command.vo.DeptVo">
+	WITH RECURSIVE cte AS (
+		SELECT
+			departId,
+			departName,
+			parentDepartId  ,
+			departLevel,
+ 			departDesc,
+ 			concat(ifnull(parentDepartId,departId),departId) as rk
+		FROM
+		depart a
+		WHERE
+		parentDepartId  is null
+		UNION ALL
+
+		SELECT
+			m.departId,
+			m.departName,
+			m.parentDepartId,
+			m.departLevel,
+ 			m.departDesc,
+ 			concat(m.parentDepartId,m.departId) as rk
+		FROM
+		depart m
+		INNER JOIN cte cte ON m.parentDepartId = cte.departId
+		)  
+		SELECT
+			departId,
+			departName,
+			parentDepartId,
+			departLevel,
+			departDesc,
+			rk
+			
+		FROM
+		cte
+		order by rk
+	
+	</select>
+	
+	
+	<select id="deptPerMemberList" parameterType="String" resultType="command.vo.MemberVo">
+			
+	select
+		a.memberId,
+		a.name,
+		a.phone,
+		a.departId,
+		(select departName  from depart d where d.departId  = a.departId) as departName,
+		a.fax,
+		a.email,
+		a.tel,
+		a.sex,
+		a.joinDate,
+	 	b.codeValue    as departPos
+	from
+		members a inner join codes b 
+		on a.departPos  = b.codeNo  
+	where a.departId  = #{departId}
+	</select>
+	
+</mapper>

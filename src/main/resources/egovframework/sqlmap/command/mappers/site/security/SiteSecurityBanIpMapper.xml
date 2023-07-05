@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.SiteSecurityBanIpMapper">
+ 
+ <insert id="insertBanIp" parameterType="command.vo.SecurityBanIpVo" >
+ insert into ban_ips
+ (
+ 	banIp
+ 	,city
+ 	,region
+ 	,country
+ 	,loc
+ 	,org
+ 	,postal
+ 	,timezone
+ 	,regId
+ 	,regDate
+ )
+ values
+ (
+ 	#{banIp}
+   ,#{city}
+   ,#{region}
+   ,#{country}
+   ,#{loc}
+   ,#{org}
+   ,#{postal}
+   ,#{timezone}
+   ,'admin'
+   ,now()   
+ )
+ 
+ </insert>
+
+ <insert id="insertBanReason" parameterType="command.vo.SecurityBanIpVo">
+ insert into ban_ips_msg
+ (
+   banIp
+   ,banMsg
+   ,regId
+   ,regDate
+ )
+ values
+ (
+   #{banIp}
+   ,#{banMsg}
+   ,'admin'
+   ,now()
+ )
+ 
+ </insert>
+
+ 
+ 
+ 
+ <select id="selectSecurityBoardList" parameterType="command.vo.SecurityBanIpVo" resultType="command.vo.SecurityBanIpVo">
+	 select  a.banIp 
+	 		,a.country 
+	 		,b.banMsg
+	 		,a.regId 
+	 		,a.regDate 
+	 from ban_ips a left join ban_ips_msg b 
+	 on a.banIp = b.banIp 
+	 order by a.regDate desc
+	 limit ${recordCountPerPage} offset ${firstIndex}		
+</select>
+
+
+<select id="selectSecurityCount" parameterType="command.vo.SecurityBanIpVo" resultType="Integer">
+	select count(1) as cnt  
+	from 
+ 	ban_ips 
+</select>
+ 
+
+<select id="checkBanIp" parameterType="command.vo.SecurityBanIpVo" resultType="Integer">
+ 	select count(1) 
+ 	from ban_ips
+	where banIp = #{banIp}
+</select>
+
+
+<delete id="banIpRemoveBanIp" parameterType="String">
+	DELETE a, b 
+	FROM ban_ips a LEFT JOIN ban_ips_msg b 
+	ON a.banIp = b.banIp 
+	WHERE a.banIp=#{banIp}
+</delete>
+
+
+
+</mapper>

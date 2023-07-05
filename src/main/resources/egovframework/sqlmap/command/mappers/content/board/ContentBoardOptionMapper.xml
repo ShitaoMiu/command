@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.ContentBoardOptionMapper">
+ 
+ <insert id="saveContentBoards" parameterType="command.vo.ContentsBoardOptionVo">
+	INSERT INTO contents_board_options
+	( 	  contentsBoardOpIdx
+	  	, contentsBoardOpName
+	  	, contentsBoardOpId
+	  	, contentsBoardOpType
+	  	, contentsIsBoardMeCert
+	  	, contentsIsBoardSMS 
+	  	, contentsBoardCommentNum
+	  	, contentsBoardNoticeNum
+	  	, regId
+	  	, regDate
+	)
+	VALUES(
+		#{contentsBoardOpIdx}
+	   ,#{contentsBoardOpName}
+	   ,#{contentsBoardOpId}
+	   ,#{contentsBoardOpType}
+	   ,#{contentsIsBoardMeCert}
+	   ,#{contentsIsBoardSMS}
+	   ,#{contentsBoardCommentNum}
+	   ,#{contentsBoardNoticeNum}
+	   ,'admin'
+	   , now()
+	   )
+	ON DUPLICATE KEY UPDATE
+	  contentsBoardOpName 		=#{contentsBoardOpName}
+	, contentsBoardOpId 			=#{contentsBoardOpId}
+	, contentsBoardOpType 		=#{contentsBoardOpType}
+	, contentsIsBoardMeCert 	=#{contentsIsBoardMeCert}
+	, contentsIsBoardSMS 		=#{contentsIsBoardSMS}
+	, contentsBoardCommentNum 	=#{contentsBoardCommentNum}
+	, contentsBoardNoticeNum 	=#{contentsBoardNoticeNum}
+	, modId 					='admin'
+	, modDate					= now()
+</insert>
+
+
+
+ 
+
+<select id="selectContentsBoardMaxIdx" resultType="Integer"> 
+	SELECT ifnull(max(contentsBoardOpIdx),0) as maxNo 
+ 	FROM contents_board_options
+</select> 
+
+<delete id="deleteContentsBoardBanWords" parameterType="Integer">
+	delete 
+		from contents_board_banwords
+	where contentsBoardOpIdx = #{contentsBoardOpIdx}
+</delete>
+
+
+
+<insert id="saveContentsBoardBanWords" parameterType="java.util.List">
+   INSERT INTO contents_board_banwords 
+   (
+   		contentsBoardOpIdx
+   	   ,contentsBoardBanIdx
+	   ,contentsBoardBanword
+   	   ,regId
+   	   ,regDate
+   )
+   VALUES 
+   <foreach item="item" index="index" collection="list" open="(" separator="),(" close=")">
+	     ${item.contentsBoardOpIdx}
+	   , ${item.contentsBoardBanIdx}
+	   , '${item.contentsBoardBanword}'
+	   , 'admin'
+	   , now()
+	</foreach>
+</insert>
+
+
+<delete id="deleteContentsBoardColumns" parameterType="Integer">
+	delete 
+		from contents_board_columns  
+	where contentsBoardOpIdx = #{contentsBoardOpIdx}
+	
+</delete>
+ 
+
+<insert id="saveContentsBoardColumns" parameterType="java.util.List">
+   INSERT INTO contents_board_columns
+   (
+     contentsBoardOpIdx 
+   	,contentsBoardColumnIdx
+   	,contentsBoardColumnType
+   	,contentsBoardColumnOrder
+   	,contentsBoardColumnName
+   	,regId
+   	,regDate
+   	)
+   VALUES 
+   <foreach item="item" index="index" collection="list" open="(" separator="),(" close=")">
+	     ${item.contentsBoardOpIdx}
+	   , ${item.contentsBoardColumnIdx}
+	   , ${item.contentsBoardColumnType}
+	   , ${item.contentsBoardColumnOrder}
+	   , "${item.contentsBoardColumnName}"
+	   , 'admin'
+	   , now()
+	</foreach>
+</insert>
+
+
+<select id="selectContentsBoardList" parameterType="command.vo.ContentsBoardOptionVo" resultType="command.vo.ContentsBoardOptionVo">
+	 select  contentsBoardOpIdx
+	 		,contentsBoardOpName 
+	 		,contentsBoardOpId 
+	 		,contentsBoardOpType 
+	 		,contentsIsBoardMeCert 
+	 		,contentsIsBoardSMS 
+	 		,contentsBoardCommentNum 
+	 		,contentsBoardNoticeNum  
+ 			, regId
+		  	, regDate
+	 from contents_board_options 
+	 order by contentsBoardOpIdx desc
+	 limit ${recordCountPerPage} offset ${firstIndex}		
+
+</select>
+
+
+<select id="selectContentsBoardTotalCnt" parameterType="command.vo.ContentsBoardOptionVo" resultType="Integer">
+	select count(1) as cnt  
+	from 
+		contents_board_options 
+</select>
+
+<select id="selectContentsBoardOne" parameterType="Integer" resultType="command.vo.ContentsBoardOptionVo">
+	select
+		 contentsBoardOpIdx 
+		,contentsBoardOpName 
+		,contentsBoardOpId 
+		,contentsBoardOpType 
+		,contentsIsBoardMeCert 
+		,contentsIsBoardSMS 
+		,contentsBoardCommentNum 
+		,contentsBoardNoticeNum
+	from
+		contents_board_options 
+	where contentsBoardOpIdx = #{contentsBoardOpIdx}
+</select>
+
+
+<select id="selectContentsBoardBandWords" parameterType="Integer" resultType="command.vo.ContentsBoardBanWordVo">
+	SELECT 
+		  contentsBoardOpIdx
+		 ,contentsBoardBanIdx
+		 ,contentsBoardBanword
+	FROM contents_board_banwords
+	where contentsBoardOpIdx = #{contentsBoardOpIdx}
+</select>
+
+
+
+
+<select id="selectContentsBoardColumnList" parameterType="Integer" resultType="command.vo.ContentsBoardColumnVo">
+	SELECT 
+		 contentsBoardOpIdx
+		,contentsBoardColumnIdx
+		,contentsBoardColumnType
+		,contentsBoardColumnOrder 
+		,contentsBoardColumnName
+	FROM contents_board_columns
+	where contentsBoardOpIdx  = #{contentsBoardOpIdx}
+</select>
+
+</mapper>

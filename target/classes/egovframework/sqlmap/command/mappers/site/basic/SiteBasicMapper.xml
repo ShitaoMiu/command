@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="command.mapper.SiteBasicMapper">
+
+	<resultMap id="fileList" type="egovframework.example.cmmn.service.FileVO">
+		<result property="atchFileId" column="ATCH_FILE_ID"/>
+		<result property="fileCn" column="FILE_CN"/>
+		<result property="fileExtsn" column="FILE_EXTSN"/>
+		<result property="fileMg" column="FILE_SIZE"/>
+		<result property="fileSn" column="FILE_SN"/>
+		<result property="fileStreCours" column="FILE_STRE_COURS"/>
+		<result property="orignlFileNm" column="ORIGNL_FILE_NM"/>
+		<result property="streFileNm" column="STRE_FILE_NM"/>
+		<result property="creatDt" column="CREAT_DT"/>			
+	</resultMap>
+
+<select id="selectMaxSequence" resultType="java.lang.Long">
+  SELECT ifnull(max(siteBasicIdx)+1,1) FROM siteBasic
+</select>
+  
+
+<insert id="saveSiteBasic" parameterType="command.vo.SiteBasicVo">
+	 INSERT INTO siteBasic (siteBasicIdx,siteNm,siteAddr,siteSubAddr, siteExpl, siteOpenYN, loginStatusYN, faviconFileId, mainImgFileId,socialLoginYN,socialType, regId, regDate)
+	 VALUES(#{siteBasicIdx},#{siteNm},#{siteAddr},#{siteSubAddr}, #{siteExpl}, #{siteOpenYN}, #{loginStatusYN}, #{faviconFileId}, #{mainImgFileId},#{socialLoginYN},#{socialType}, 'admin', current_timestamp())
+	 ON DUPLICATE KEY 
+	 UPDATE
+	  siteNm		=#{siteNm}	
+	 ,siteAddr		=#{siteAddr}
+	 ,siteSubAddr	=#{siteSubAddr}
+	 ,siteExpl 	 	=#{siteExpl}	
+	 ,siteOpenYN 	=#{siteOpenYN}
+	 ,loginStatusYN =#{loginStatusYN}
+	 ,faviconFileId =#{faviconFileId}
+	 ,mainImgFileId =#{mainImgFileId}
+	 ,socialLoginYN =#{socialLoginYN}
+	 ,socialType 	=#{socialType}
+	 ,modId         ='admin'
+	 ,modDate   	= now()	 
+</insert> 
+ 
+
+<select id="selectSiteBasic" resultType="command.vo.SiteBasicVo">
+	SELECT siteBasicIdx
+		  , siteNm
+		  , siteAddr
+		  , siteSubAddr
+		  , siteExpl
+		  , siteOpenYN
+		  , loginStatusYN
+		  , faviconFileId
+		  , mainImgFileId
+		  , socialLoginYN
+		  , socialType
+		  , regId
+		  , regDate 
+	FROM siteBasic ORDER BY siteBasicIdx DESC LIMIT 1
+</select>
+
+
+
+ 
+<select id="selectSiteBasicFaviFileList" parameterType="command.vo.SiteBasicVo" resultMap="fileList">
+	SELECT ATCH_FILE_ID,FILE_SN, FILE_STRE_COURS, STRE_FILE_NM, ORIGNL_FILE_NM, FILE_EXTSN, FILE_CN, FILE_SIZE 
+	FROM lettnfiledetail  
+	WHERE ATCH_FILE_ID = #{faviconFileId}
+</select>
+
+
+<select id="selectSiteBasicMainFileList" parameterType="command.vo.SiteBasicVo" resultMap="fileList">
+	SELECT ATCH_FILE_ID,FILE_SN, FILE_STRE_COURS, STRE_FILE_NM, ORIGNL_FILE_NM, FILE_EXTSN, FILE_CN, FILE_SIZE 
+	FROM lettnfiledetail  
+	WHERE ATCH_FILE_ID = #{mainImgFileId}
+</select>
+
+
+</mapper>
